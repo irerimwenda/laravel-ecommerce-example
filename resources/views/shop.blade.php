@@ -65,7 +65,11 @@
             </div> <!-- end products -->
 
             <div class="spacer"></div>
-            {{ $products->appends(request()->input())->links() }}
+
+            <div style="text-align:center" class="center">
+                {{ $products->appends(request()->input())->links() }}
+            </div>
+
         </div>
     </div>
 

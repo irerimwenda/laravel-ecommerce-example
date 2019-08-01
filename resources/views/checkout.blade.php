@@ -162,7 +162,7 @@
                             <hr>
                             New Subtotal <br>
                         @endif
-                        Tax ({{config('cart.tax')}}%)<br>
+                        {{-- Tax ({{config('cart.tax')}}%) --}}<br>
                         <span class="checkout-totals-total">Total</span>
 
                     </div>
@@ -174,11 +174,16 @@
                             <hr>
                             {{ presentPrice($newSubtotal) }} <br>
                         @endif
-                        {{ presentPrice($newTax) }} <br>
-                        <span class="checkout-totals-total">{{ presentPrice($newTotal) }}</span>
+{{--                         {{ presentPrice($newTax) }} --}}<br> 
+                        <span class="checkout-totals-total">{{ presentPrice($newSubtotal) }}</span>
 
                     </div>
                 </div> <!-- end checkout-totals -->
+
+                <div class="mpesa-btn" style="margin: 20px auto; text-align:center">
+                <a class="button-primary" href="{{ route('checkout.mpesa') }}"><span>Lipa Na M-Pesa</span></a>
+                </div>
+
             </div>
 
         </div> <!-- end checkout-section -->

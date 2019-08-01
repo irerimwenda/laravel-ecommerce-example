@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Order;
 use App\Product;
 use App\OrderProduct;
+use App\ReserveProduct;
 use App\Mail\OrderPlaced;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -12,6 +13,9 @@ use App\Http\Requests\CheckoutRequest;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Cartalyst\Stripe\Laravel\Facades\Stripe;
 use Cartalyst\Stripe\Exception\CardErrorException;
+use Session;
+use Carbon\Carbon;
+use Auth;
 
 class CheckoutController extends Controller
 {
@@ -78,9 +82,9 @@ class CheckoutController extends Controller
                 'description' => 'Order',
                 'receipt_email' => $request->email,
                 'metadata' => [
-                    'contents' => $contents,
-                    'quantity' => Cart::instance('default')->count(),
-                    'discount' => collect(session()->get('coupon'))->toJson(),
+                'contents' => $contents,
+                'quantity' => Cart::instance('default')->count(),
+                'discount' => collect(session()->get('coupon'))->toJson(),
                 ],
             ]);
 
@@ -157,6 +161,110 @@ class CheckoutController extends Controller
 
             return back()->withErrors('An error occurred with the message: '.$result->message);
         }
+    }
+
+    //Lipa Na Mpesa STK Push
+    public function stkPush(Request $request) {
+
+    header("Content-Type: application/json; charset=UTF-8");
+    //$obj = json_decode($_GET["phone"],$_GET["amount"],$_GET["order_no"], false);
+    $phone = Auth::user()->phone_number;
+    $amount = 5;
+    $order_no = 123456;
+    $account_no = 'Laravel-Ecommerce-'.$order_no;
+
+    $access_token=$this->get_accesstoken();
+    $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json','Authorization:Bearer '.$access_token)); //setting custom header
+
+    $BusinessShortCode = 174379;
+    $LipaNaMpesaPasskey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+    $date = new Carbon();
+    $timestamp = $date->format('YmdHis');
+    $password=base64_encode($BusinessShortCode.$LipaNaMpesaPasskey.$timestamp);
+
+    $curl_post_data = array(
+        //Fill in the request parameters with valid values
+        'BusinessShortCode' => $BusinessShortCode,
+        'Password' => $password,
+        'Timestamp' => $timestamp,
+        'TransactionType' => 'CustomerPayBillOnline',
+        'Amount' => $amount,
+        'PartyA' => $phone,
+        'PartyB' => $BusinessShortCode,
+        'PhoneNumber' => $phone,
+        'CallBackURL' => 'https://6de6f73e.ngrok.io/payment/response.php',
+        'AccountReference' => $account_no,
+        'TransactionDesc' => 'Testing',
+        'InvoiceNumber' => '123456'
+    );
+
+    $data_string = json_encode($curl_post_data);
+
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+
+    $curl_response = curl_exec($curl);
+    //echo $curl_response;
+    echo "Processing payment. ";
+
+    //echo "Waiting for payment confirmation";
+
+    }
+
+    //Get access token
+    function get_accesstoken(){
+        $credentials = base64_encode('meYNDiQDUeuOAtZLNHteNCLAKnqbTo3v:69r27gzkyNJ1LGTm');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Basic '.$credentials, 'Content-Type: application/json'));
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $response = json_decode($response);
+    
+        $access_token = $response->access_token;
+    
+        // The above $access_token expires after an hour, find a way to cache it to minimize requests to the server
+        if(!$access_token){
+            throw new Exception("Invalid access token generated");
+            return FALSE;
+        }
+        return $access_token;
+    }
+
+    // Reserve Product
+    public function reserve(Request $request, $id) {
+        $product = Product::find($id);
+
+        return view('reserve.index')->with([
+            'product' => $product,
+            'discount' => getNumbers()->get('discount'),
+            'newSubtotal' => getNumbers()->get('newSubtotal'),
+            'newTax' => getNumbers()->get('newTax'),
+            'newTotal' => getNumbers()->get('newTotal'),
+        ]);
+
+        Session::flash('success_message', 'Proceed to reserve item');
+
+    }
+
+    //Accept & Reserve
+    public function acceptReserve(Request $request, $id) {
+        $product = Product::find($id);
+        $reserve = new ReserveProduct;
+
+        $reserve->product_id = $product->id;
+        $reserve->save();
+
+        Session::flash('success', 'Item Reserved');
+        return redirect()->route('shop.index');
+
     }
 
     protected function addToOrdersTables($request, $error)

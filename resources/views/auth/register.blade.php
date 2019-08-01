@@ -29,6 +29,8 @@
 
                 <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="Email" required>
 
+                <input id="phone_number" type="text" class="form-control" name="phone_number" value="{{ old('phone_number') }}" placeholder="Phone Number" required>
+
                 <input id="password" type="password" class="form-control" name="password" placeholder="Password" placeholder="Password" required>
 
                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" placeholder="Confirm Password"
@@ -54,7 +56,7 @@
             &nbsp;
             <div class="spacer"></div>
             <p><strong>Loyalty Program</strong></p>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt debitis, amet magnam accusamus nisi distinctio eveniet ullam. Facere, cumque architecto.</p>
+            <p>Being a loyal customer goes a long way than just shopping with us. You will have added shopping points for every time you shop and get voucher points when you refer a friend to us.</p>
         </div>
     </div> <!-- end auth-pages -->
 </div>

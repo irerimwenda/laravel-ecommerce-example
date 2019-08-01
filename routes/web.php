@@ -18,8 +18,14 @@ Route::post('/coupon', 'CouponsController@store')->name('coupon.store');
 Route::delete('/coupon', 'CouponsController@destroy')->name('coupon.destroy');
 
 Route::get('/checkout', 'CheckoutController@index')->name('checkout.index')->middleware('auth');
+
+//Reserve Product
+Route::get('/reserve/{id}', 'CheckoutController@reserve')->name('reserve-product')->middleware('auth');
+Route::get('/accept-reserve/{id}', 'CheckoutController@acceptReserve')->name('accept-reserve')->middleware('auth');
+
 Route::post('/checkout', 'CheckoutController@store')->name('checkout.store');
 Route::post('/paypal-checkout', 'CheckoutController@paypalCheckout')->name('checkout.paypal');
+Route::any('/mpesa-checkout', 'CheckoutController@stkPush')->name('checkout.mpesa');
 
 Route::get('/guestCheckout', 'CheckoutController@index')->name('guestCheckout.index');
 

@@ -60,6 +60,12 @@
 
                                 <button type="submit" class="cart-options">Save for Later</button>
                             </form>
+
+                            <form action="{{ route('reserve-product', $item->id) }}" method="GET">
+                                {{ csrf_field() }}
+
+                                <button type="submit" class="cart-options">Reserve</button>
+                            </form>
                         </div>
                         <div>
                             <select class="quantity" data-id="{{ $item->rowId }}" data-productQuantity="{{ $item->model->quantity }}">
@@ -106,7 +112,7 @@
                             <hr>
                             New Subtotal <br>
                         @endif
-                        Tax ({{config('cart.tax')}}%)<br>
+                        {{-- Tax ({{config('cart.tax')}}%) --}}<br>
                         <span class="cart-totals-total">Total</span>
                     </div>
                     <div class="cart-totals-subtotal">
@@ -116,8 +122,8 @@
                             <hr>
                             {{ presentPrice($newSubtotal) }} <br>
                         @endif
-                        {{ presentPrice($newTax) }} <br>
-                        <span class="cart-totals-total">{{ presentPrice($newTotal) }}</span>
+                        {{-- presentPrice($newTax) --}} <br>
+                        <span class="cart-totals-total">{{ presentPrice($newSubtotal) }}</span>
                     </div>
                 </div>
             </div> <!-- end cart-totals -->
@@ -152,6 +158,7 @@
                     </div>
                     <div class="cart-table-row-right">
                         <div class="cart-table-actions">
+                            
                             <form action="{{ route('saveForLater.destroy', $item->rowId) }}" method="POST">
                                 {{ csrf_field() }}
                                 {{ method_field('DELETE') }}
@@ -164,6 +171,7 @@
 
                                 <button type="submit" class="cart-options">Move to Cart</button>
                             </form>
+                            
                         </div>
 
                         <div>{{ $item->model->presentPrice() }}</div>
